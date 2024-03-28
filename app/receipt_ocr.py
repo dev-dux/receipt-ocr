@@ -9,6 +9,7 @@ import os
 import tensorflow as tf
 import tensorflow_hub as hub
 import logging
+import uuid
 logging.basicConfig(level=logging.INFO)
 
 # Your OCR logic here
@@ -46,8 +47,8 @@ def predict(image_path):
     results = model([image_path])
     logging.info("Generated labelled images!")
     for result in results:
-        timestamp = int(round(datetime.now().timestamp()))
-        result_path = f'app/data/save_dir/cls_{timestamp}'
+        # timestamp = int(round(datetime.now().timestamp()))
+        result_path = f'app/data/save_dir/cls_{uuid.uuid4().__str__}'
         result.save_crop(result_path)
         logging.info(f"Labelled images stored at: {os.path.abspath(result_path)}")
         return result_path
