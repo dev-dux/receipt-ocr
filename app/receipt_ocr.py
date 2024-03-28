@@ -48,7 +48,7 @@ def predict(image_path):
     logging.info("Generated labelled images!")
     for result in results:
         # timestamp = int(round(datetime.now().timestamp()))
-        result_path = f'app/data/save_dir/cls_{uuid.uuid4().__str__}'
+        result_path = f'app/data/save_dir/cls_{str(uuid.uuid4())}'
         result.save_crop(result_path)
         logging.info(f"Labelled images stored at: {os.path.abspath(result_path)}")
         return result_path
