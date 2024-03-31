@@ -10,21 +10,11 @@ API_KEY = "1"
 
 @app.route('/api/computervision/es/receipt-ocr', methods=['POST'])
 def receipt_ocr():
-    # michelob_api_key = request.form.get('michelobAPiKey')
-    # if michelob_api_key != API_KEY:
-    #     return jsonify({
-    #         "code": "400 BAD_REQUEST",
-    #         "message": "Unauthorized to Access Resource",
-    #         "responseJson": None,
-    #         "detailMessage": None,
-    #         "id": None
-    #     })
-
     # Check if file is passed
     if 'file' not in request.files:
         return jsonify({
             "code": "400 BAD_REQUEST",
-            "message": "No File in the request",
+            "message": "Request is Empty Please Enter Mandatory Parameters",
             "responseJson": None,
             "detailMessage": None,
             "id": None
@@ -36,7 +26,7 @@ def receipt_ocr():
     if file.filename == '':
         return jsonify({
             "code": "400 BAD_REQUEST",
-            "message": "Request is Empty Please Enter Mandatory Parameters",
+            "message": "No File in the request",
             "responseJson": None,
             "detailMessage": None,
             "id": None
@@ -53,25 +43,35 @@ def receipt_ocr():
             "id": None
         })
 
+    uuid4 = str(uuid.uuid4())
+
     # Save file
     filename = secure_filename(file.filename)
     file.save(f"app/static/images/uploads/{filename}")
     image_path = f"app/static/images/uploads/{filename}"
-    enhanced_image_path = f"app/data/enhanced_{str(uuid.uuid4())}.jpg"
+    enhanced_image_path = f"app/data/enhanced_{uuid4}.jpg"
     image_enhancement(image_path, enhanced_image_path)
-    labelled_images_path = predict(enhanced_image_path)
+    labelled_images_path = predict(enhanced_image_path, uuid4)
     data = ocr(labelled_images_path)
     print("\n\ndata: ", data)
 
     # Check if Michelob SKU is detected
-    michelob_detected = any('Michelob' in item['product_name'] for item in data['items'])
+    michelob_detected = any('michelob' in item['product_name'].lower() for item in data['items'])
     
     # Prepare response based on scenarios
     if michelob_detected:
         response_data = {
             "code": "200 OK",
             "message": "Success",
-            "responseJson": data,
+            "responseJson": {
+                "merchantName": data.get('store_name'),
+                "merhcantAddress": data.get('store_address'),
+                "transactionDate": data.get('transaction_date'),
+                "transactionTime": data.get('transaction_time'),
+                "invoiceNumber": data.get('invoice_number'),
+                "products": data.get('items'),
+                "message": ""
+            },
             "detailMessage": None,
             "id": None
         }
@@ -80,7 +80,14 @@ def receipt_ocr():
             "code": "200 OK",
             "message": "Success",
             "responseJson": {
-                "data": data,
+                "merchantName": data.get('store_name'),
+                "merhcantAddress": data.get('store_address'),
+                "transactionDate": data.get('transaction_date'),
+                "transactionTime": data.get('transaction_time'),
+                "invoiceNumber": data.get('invoice_number'),
+                "products": [
+                    None
+                ],
                 "message": "Please scan a receipt with the Michelob products you've purchased"
             },
             "detailMessage": None,

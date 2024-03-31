@@ -12,6 +12,14 @@ import logging
 import uuid
 logging.basicConfig(level=logging.INFO)
 
+esrgan_model_path = 'app/archive'
+esrgan_model = hub.load(esrgan_model_path)
+
+yolo_model_path = 'app/best.pt'
+logging.info("Loading model...")
+yolo_model = YOLO(yolo_model_path)
+logging.info(f"Loaded model: {yolo_model._get_name()}!")
+
 # Your OCR logic here
 def preprocess_image(image_path):
     hr_image = tf.image.decode_image(tf.io.read_file(image_path))
@@ -30,25 +38,18 @@ def save_image(image, filename):
 
 def image_enhancement(image_path, enhanced_image_path):
     logging.info("Started image enhancement...")
-    saved_model_path = 'app/archive'
     hr_image = preprocess_image(image_path)
-    model = hub.load(saved_model_path)
-    fake_image = model(hr_image)
+    fake_image = esrgan_model(hr_image)
     fake_image = tf.squeeze(fake_image)
     save_image(tf.squeeze(fake_image), filename=enhanced_image_path)
     logging.info("Completed image enhancement!\n")
 
-def predict(image_path):
-    model_path = 'app/best.pt'
-    logging.info("Loading model...")
-    model = YOLO(model_path)
-    logging.info(f"Loaded model: {model._get_name()}!")
+def predict(image_path, uuid4):
     logging.info("Predicting image labellings...")
-    results = model([image_path])
+    results = yolo_model([image_path])
     logging.info("Generated labelled images!")
     for result in results:
-        # timestamp = int(round(datetime.now().timestamp()))
-        result_path = f'app/data/save_dir/cls_{str(uuid.uuid4())}'
+        result_path = f'app/data/save_dir/cls_{uuid4}'
         result.save_crop(result_path)
         logging.info(f"Labelled images stored at: {os.path.abspath(result_path)}")
         return result_path
@@ -75,7 +76,7 @@ def ocr(image_dir):
                 logging.info("Completed text extraction!")
                 if cls != 'items':
                     if cls == 'product':
-                        data['items'].append({'product_name': text, 'product_quantity': None})
+                        data['items'].append({'item': text, 'quantity': None})
                     else:
                         data[cls] = text
     # json_object = json.dumps(data, indent=4)
