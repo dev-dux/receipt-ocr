@@ -56,7 +56,7 @@ def receipt_ocr():
     print("\n\ndata: ", data)
 
     # Check if Michelob SKU is detected
-    michelob_detected = any('michelob' in item['product_name'].lower() for item in data['items'])
+    michelob_detected = any('michelob' in item['item'].lower() for item in data['items'])
     
     # Prepare response based on scenarios
     if michelob_detected:
