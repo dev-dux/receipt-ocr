@@ -43,6 +43,19 @@ def receipt_ocr():
             "id": None
         })
 
+        # Check file size
+    if len(file.read()) > 500000:  # 500 KB in bytes
+        return jsonify({
+            "code": "400 BAD_REQUEST",
+            "message": "File size exceeds 500KB",
+            "responseJson": None,
+            "detailMessage": None,
+            "id": None
+        })
+
+    # Reset file cursor
+    file.seek(0)
+    
     uuid4 = str(uuid.uuid4())
 
     # Save file
