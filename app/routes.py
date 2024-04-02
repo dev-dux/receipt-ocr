@@ -3,7 +3,7 @@ from app import app
 from werkzeug.utils import secure_filename
 import uuid
 from app.receipt_ocr import image_enhancement, predict, ocr
-
+import re
 # Mock data for demonstration purposes
 BASE_URL = ""
 API_KEY = "1"
@@ -43,6 +43,19 @@ def receipt_ocr():
             "id": None
         })
 
+        # Check file size
+    if len(file.read()) > 500000:  # 500 KB in bytes
+        return jsonify({
+            "code": "400 BAD_REQUEST",
+            "message": "File size exceeds 500KB",
+            "responseJson": None,
+            "detailMessage": None,
+            "id": None
+        })
+
+    # Reset file cursor
+    file.seek(0)
+    
     uuid4 = str(uuid.uuid4())
 
     # Save file
@@ -55,9 +68,18 @@ def receipt_ocr():
     data = ocr(labelled_images_path)
     print("\n\ndata: ", data)
 
-    # Check if Michelob SKU is detected
-    michelob_detected = any('michelob' in item['item'].lower() for item in data['items'])
+    michelob_patterns = [
+    r"[wWmn][il][cod][hk][eo0][li][o0b][bo0]",
+    r"(?:M|(?<!\|))?(?:[1ilI!|][cC][hH][eE3][lL][oO0][bB])",
+    r"(?:[MmwW]|(?<!\|))?(?:[T1ileEI!|][cC][hH][eE3][lL][oO0][bB])"
+]
     
+    # Compile the regex patterns
+    michelob_regex = [re.compile(pattern, re.IGNORECASE) for pattern in michelob_patterns]
+
+    # Check if Michelob SKU is detected
+    michelob_detected = any(pattern.search(item['item']) for pattern in michelob_regex for item in data['items'])
+        
     # Prepare response based on scenarios
     if michelob_detected:
         response_data = {
@@ -71,6 +93,21 @@ def receipt_ocr():
                 "invoiceNumber": data.get('invoice_number'),
                 "products": data.get('items'),
                 "message": ""
+            },
+            "detailMessage": None,
+            "id": None
+        }
+    elif not data['store_name'] and not data['store_address'] and not data['transaction_date'] and not data['transaction_time']:
+        response_data = {
+            "code": "200 OK",
+            "message": "Success",
+            "responseJson": {
+                "merchantName": None,
+                "merhcantAddress": None,
+                "transactionDate": None,
+                "transactionTime": None,
+                "products": [None],
+                "message": "Please Scan a Valid Receipt Image"
             },
             "detailMessage": None,
             "id": None
