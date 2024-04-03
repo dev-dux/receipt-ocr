@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 esrgan_model_path = 'app/archive'
 esrgan_model = hub.load(esrgan_model_path)
 
-yolo_model_path = 'app/best_15.pt'
+yolo_model_path = 'app/best_34.pt'
 logging.info("Loading model...")
 yolo_model = YOLO(yolo_model_path)
 logging.info(f"Loaded model: {yolo_model._get_name()}!")
