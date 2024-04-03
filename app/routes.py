@@ -2,7 +2,7 @@ from flask import request, jsonify
 from app import app
 from werkzeug.utils import secure_filename
 import uuid
-from app.receipt_ocr import image_enhancement, predict, ocr, deskew_image
+from app.receipt_ocr import image_enhancement, predict, ocr #, deskew_image
 import re
 from PIL import Image
 import tensorflow as tf
