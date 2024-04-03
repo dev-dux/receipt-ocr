@@ -2,8 +2,11 @@ from flask import request, jsonify
 from app import app
 from werkzeug.utils import secure_filename
 import uuid
-from app.receipt_ocr import image_enhancement, predict, ocr
+from app.receipt_ocr import image_enhancement, predict, ocr, deskew_image
 import re
+from PIL import Image
+import tensorflow as tf
+
 # Mock data for demonstration purposes
 BASE_URL = ""
 API_KEY = "1"
@@ -62,6 +65,10 @@ def receipt_ocr():
     filename = secure_filename(file.filename)
     file.save(f"app/static/images/uploads/{filename}")
     image_path = f"app/static/images/uploads/{filename}"
+    # image = deskew_image(image_path)
+    # image = Image.fromarray(image[::,-1])
+    # deskew_image_path = f"app/data/deskewed_{uuid4}.jpg"
+    # image.save(deskew_image_path)
     enhanced_image_path = f"app/data/enhanced_{uuid4}.jpg"
     image_enhancement(image_path, enhanced_image_path)
     labelled_images_path = predict(enhanced_image_path, uuid4)
