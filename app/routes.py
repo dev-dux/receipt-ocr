@@ -44,7 +44,7 @@ def receipt_ocr():
         })
 
         # Check file size
-    if len(file.read()) > 500000:  # 500 KB in bytes
+    if len(file.read()) > 512000:  # 500 KB in bytes
         return jsonify({
             "code": "400 BAD_REQUEST",
             "message": "File size exceeds 500KB",
