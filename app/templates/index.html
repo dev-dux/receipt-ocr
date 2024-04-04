@@ -20,12 +20,19 @@
                 <label for="michelobAPiKey">Enter your API key:</label>
                 <input type="text" id="michelobAPiKey" name="michelobAPiKey" required>
             </div> -->
-            <button type="submit">Submit</button>
+            <button type="submit" id="submitBtn">Submit</button>
+            <div id="loader" class="loader" style="display: none;"></div> 
+            
+            <!-- Loader element -->
         </form>
+
+        
         <div class="response" id="responseContainer" style="display: none;">
+            <div id="executionTime"></div> 
             <h2>Response:</h2>
-            <code id="responseCode"></code>
+            <code id="responseCode"></code> 
         </div>
+        <!-- <div id="executionTime"></div> Move this div here -->
     </div>
 
     <script>
@@ -33,19 +40,40 @@
             event.preventDefault();
             var form = event.target;
             var formData = new FormData(form);
-
+            var submitBtn = document.getElementById('submitBtn');
+            var loader = document.getElementById('loader');
+            var startTime = new Date().getTime(); // Record start time
+    
+            // Clear past response
+            document.getElementById('responseCode').textContent = '';
+            document.getElementById('responseContainer').style.display = 'none';
+    
+            submitBtn.style.backgroundColor = '#cccccc'; // Change button color to grey
+            loader.style.display = 'block'; // Display loader
+    
             fetch('/api/computervision/es/receipt-ocr', {
                 method: 'POST',
                 body: formData
             })
                 .then(response => response.json())
                 .then(data => {
+                    var endTime = new Date().getTime(); // Record end time
+                    var executionTime = (endTime - startTime) / 1000; // Calculate execution time in seconds
                     document.getElementById('responseCode').textContent = JSON.stringify(data, null, 2);
                     document.getElementById('responseContainer').style.display = 'block';
+                    document.getElementById('executionTime').textContent = 'Execution Time: ' + executionTime + ' seconds'; // Display execution time
+                    submitBtn.style.backgroundColor = ''; // Reset button color
+                    loader.style.display = 'none'; // Hide loader
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    submitBtn.style.backgroundColor = ''; // Reset button color in case of error
+                    loader.style.display = 'none'; // Hide loader in case of error
+                });
         });
     </script>
+    
+    
 </body>
 
 </html>
