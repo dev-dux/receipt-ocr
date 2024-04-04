@@ -87,13 +87,17 @@ def ocr(image_dir):
                     logging.info(f"\n============= On image {cls} =============")
                     img = Image.open(image_path)
                     logging.info("Extracting text...")
-                    text = pytesseract.image_to_string(img, lang="spa").rstrip().replace("\n", " ")
+                    custom_config = r'--oem 3 --psm 6'
+                    text = pytesseract.image_to_string(img, lang="eng+spa", config=custom_config).rstrip().replace("\n", " ")
                     logging.info("Completed text extraction!")
-                    if cls != 'items':
-                        if cls == 'product':
-                            data['items'].append({'item': text, 'quantity': None})
-                        else:
-                            data[cls] = text
+                    if cls == 'product':
+                        data['items'].append({'item': text, 'quantity': None})
+                    elif cls == 'quantity':
+                        for pdt in data['items']:
+                            if not pdt['quantity']:
+                                pdt['quantity'] = text
+                    else:
+                        data[cls] = text
         # json_object = json.dumps(data, indent=4)
         # result_json_file_path = "ocr.json"
         # with open(result_json_file_path, "w") as outfile:
