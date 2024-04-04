@@ -87,7 +87,7 @@ def ocr(image_dir):
                     logging.info(f"\n============= On image {cls} =============")
                     img = Image.open(image_path)
                     logging.info("Extracting text...")
-                    text = pytesseract.image_to_string(img).rstrip().replace("\n", " ")
+                    text = pytesseract.image_to_string(img, lang="spa").rstrip().replace("\n", " ")
                     logging.info("Completed text extraction!")
                     if cls != 'items':
                         if cls == 'product':
